@@ -1,0 +1,18 @@
+apiVersion: skaffold/v2alpha3
+kind: Config
+deploy:
+  kubectl:
+      manifests:
+          - ./infra/k8s/*
+build:
+  local:
+    push: false
+  artifacts:
+    - image: userbogdan/auth
+      # context: services/auth
+      docker:
+        dockerfile: services/auth/Dockerfile
+      sync:
+        manual:
+          - src: 'services/auth/**/*.go'
+            dest: .
