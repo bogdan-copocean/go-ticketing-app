@@ -5,14 +5,15 @@ deploy:
       manifests:
           - ./infra/k8s/*
 build:
+  tagPolicy:
+    sha256: {}
   local:
     push: false
   artifacts:
     - image: userbogdan/auth
-      # context: services/auth
       docker:
         dockerfile: services/auth/Dockerfile
-      sync:
-        manual:
-          - src: 'services/auth/**/*.go'
-            dest: .
+      # sync:
+      #   manual:
+      #     - src: 'services/auth/**/*.go'
+      #       dest: .
