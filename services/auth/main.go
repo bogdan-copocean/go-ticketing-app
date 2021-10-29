@@ -1,31 +1,29 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/bogdan-user/go-ticketing-app/services/auth/app"
 	"github.com/bogdan-user/go-ticketing-app/services/auth/interfaces"
 	"github.com/bogdan-user/go-ticketing-app/services/auth/repository"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
-var mongoCli *mongo.Client
-
 func main() {
-	e := echo.New()
-
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "${time_rfc3339}    ${method}   ${uri} \t ${status} -> ${latency_human}\n",
-	}))
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
 	authRepository := repository.ConnectToMongo()
 	authService := app.NewAuthService(authRepository)
 	authHandler := interfaces.NewAuthHandler(authService)
 
-	e.GET("/api/users/currentuser", authHandler.GetCurrentUser)
-	e.POST("/api/users/signin", authHandler.SignIn)
-	e.POST("/api/users/signout", authHandler.SignOut)
-	e.POST("/api/users/signup", authHandler.SignUp)
+	r.Get("/api/users/currentuser", authHandler.GetCurrentUser)
+	r.Post("/api/users/signin", authHandler.SignIn)
+	r.Post("/api/users/signout", authHandler.SignOut)
+	r.Post("/api/users/signup", authHandler.SignUp)
 
-	e.Start(":3000")
+	http.ListenAndServe(":3000", r)
+
 }

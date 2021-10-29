@@ -1,8 +1,6 @@
 package app
 
 import (
-	"net/http"
-
 	"github.com/bogdan-user/go-ticketing-app/pkg/errors"
 	"github.com/bogdan-user/go-ticketing-app/services/auth/domain"
 	"github.com/bogdan-user/go-ticketing-app/services/auth/repository"
@@ -10,6 +8,7 @@ import (
 
 type AuthService interface {
 	SignUp(*domain.User) (*domain.User, *errors.CustomErr)
+	SignIn(*domain.User) (*domain.User, *errors.CustomErr)
 }
 
 type authService struct {
@@ -21,12 +20,15 @@ func NewAuthService(authRepository repository.AuthRepository) AuthService {
 }
 
 func (as *authService) SignUp(user *domain.User) (*domain.User, *errors.CustomErr) {
-	foundUser, getErr := as.authRepository.GetUserByEmail(user.Email)
+	if validateUserErr := user.ValidateFields(); validateUserErr != nil {
+		return nil, errors.NewBadRequestErr(validateUserErr.Error())
+	}
 
+	foundUser, getErr := as.authRepository.GetUserByEmail(user)
 	if foundUser != nil {
 		return nil, errors.NewBadRequestErr("email already exists")
 	}
-	if getErr != nil && getErr.StatusCode != http.StatusNotFound {
+	if getErr != nil && getErr.StatusCode != 404 {
 		return nil, getErr
 	}
 
@@ -35,6 +37,26 @@ func (as *authService) SignUp(user *domain.User) (*domain.User, *errors.CustomEr
 		return nil, createdErr
 	}
 
+	// omits password from being marshaled and sent to client
+	createdUser.Password = ""
+
 	return createdUser, nil
+
+}
+
+func (as *authService) SignIn(user *domain.User) (*domain.User, *errors.CustomErr) {
+	if validateUserErr := user.ValidateFields(); validateUserErr != nil {
+		return nil, errors.NewBadRequestErr(validateUserErr.Error())
+	}
+
+	foundUser, getErr := as.authRepository.GetUserByEmail(user)
+	if getErr != nil {
+		return nil, getErr
+	}
+
+	// omits password from being marshaled and sent to client
+	foundUser.Password = ""
+
+	return foundUser, nil
 
 }

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/bogdan-user/go-ticketing-app/pkg/crypt"
+	"github.com/bogdan-user/go-ticketing-app/pkg/crypto"
 	"github.com/bogdan-user/go-ticketing-app/pkg/errors"
 	"github.com/bogdan-user/go-ticketing-app/services/auth/domain"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,7 +13,7 @@ import (
 
 type AuthRepository interface {
 	CreateUser(*domain.User) (*domain.User, *errors.CustomErr)
-	GetUserByEmail(string) (*domain.User, *errors.CustomErr)
+	GetUserByEmail(*domain.User) (*domain.User, *errors.CustomErr)
 }
 
 type authRepository struct {
@@ -28,7 +28,7 @@ func NewAuthRepository(client *mongo.Client, collection *mongo.Collection) AuthR
 func (ar *authRepository) CreateUser(user *domain.User) (*domain.User, *errors.CustomErr) {
 	ctx := context.Background()
 
-	hashedPassword, hashErr := crypt.CreatePasswordHash(user.Password)
+	hashedPassword, hashErr := crypto.CreatePasswordHash(user.Password)
 	if hashErr != nil {
 		return nil, errors.NewInternalServerErr("could not hash the password")
 	}
@@ -49,17 +49,21 @@ func (ar *authRepository) CreateUser(user *domain.User) (*domain.User, *errors.C
 	return user, nil
 }
 
-func (ar *authRepository) GetUserByEmail(email string) (*domain.User, *errors.CustomErr) {
-	user := &domain.User{}
+func (ar *authRepository) GetUserByEmail(user *domain.User) (*domain.User, *errors.CustomErr) {
+	foundUser := &domain.User{}
 	ctx := context.Background()
 
-	err := ar.collection.FindOne(ctx, bson.M{"email": email}).Decode(user)
+	err := ar.collection.FindOne(ctx, bson.M{"email": user.Email}).Decode(foundUser)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			return nil, errors.NewNotFoundErr("email not found")
 		}
 
 		return nil, errors.NewInternalServerErr(err.Error())
+	}
+
+	if cryptErr := crypto.CompareHashWithPassword(foundUser.Password, user.Password); cryptErr != nil {
+		return nil, errors.NewBadRequestErr("invalid credentials")
 	}
 
 	return user, nil

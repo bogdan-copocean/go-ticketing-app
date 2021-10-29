@@ -1,11 +1,11 @@
-package crypt
+package crypto
 
 import (
 	"golang.org/x/crypto/bcrypt"
 )
 
 func CreatePasswordHash(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 15)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 
 	if err != nil {
 		return "", err
