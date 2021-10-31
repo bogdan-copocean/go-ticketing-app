@@ -9,6 +9,7 @@ import (
 	"github.com/bogdan-user/go-ticketing-app/pkg/errors"
 	"github.com/bogdan-user/go-ticketing-app/services/auth/app"
 	"github.com/bogdan-user/go-ticketing-app/services/auth/domain"
+	"github.com/bogdan-user/go-ticketing-app/services/auth/middlewares"
 )
 
 type AuthHandler interface {
@@ -29,14 +30,12 @@ func NewAuthHandler(authService app.AuthService) AuthHandler {
 func (ah *authHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	cookie, cookieErr := r.Cookie("jwt")
-	if cookieErr != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		res, _ := json.Marshal(errors.NewBadRequestErr("no token provided"))
-		w.Write(res)
-		return
-	}
-	crypto.VerifyJWTToken(cookie.Value)
+	reqCtx := r.Context()
+	claims := reqCtx.Value(middlewares.CurrentUser)
+
+	w.WriteHeader(http.StatusOK)
+	res, _ := json.Marshal(claims)
+	w.Write(res)
 
 }
 
@@ -79,7 +78,14 @@ func (ah *authHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (ah *authHandler) SignOut(rw http.ResponseWriter, req *http.Request) {
+func (ah *authHandler) SignOut(w http.ResponseWriter, r *http.Request) {
+	cookie := http.Cookie{Name: "jwt", MaxAge: -1}
+	http.SetCookie(w, &cookie)
+
+	w.WriteHeader(http.StatusOK)
+	res, _ := json.Marshal(map[string]string{})
+	w.Write(res)
+
 }
 
 func (ah *authHandler) SignUp(w http.ResponseWriter, r *http.Request) {

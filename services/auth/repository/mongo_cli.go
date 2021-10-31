@@ -16,7 +16,7 @@ func ConnectToMongo() AuthRepository {
 	defer cancel()
 
 	// client, connErr := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://auth-mongo-srv:27017"))
-	client, connErr := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:30647"))
+	client, connErr := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:30366"))
 	if connErr != nil {
 		fmt.Printf("[connErr]: %v\n", connErr.Error())
 		panic(connErr)

@@ -18,3 +18,7 @@ func NewInternalServerErr(message string) *CustomErr {
 func NewNotFoundErr(message string) *CustomErr {
 	return &CustomErr{Message: message, StatusCode: http.StatusNotFound}
 }
+
+func NewUnauthorizedErr(message string) *CustomErr {
+	return &CustomErr{Message: message, StatusCode: http.StatusUnauthorized}
+}
