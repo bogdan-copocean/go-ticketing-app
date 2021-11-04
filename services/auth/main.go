@@ -31,6 +31,6 @@ func main() {
 	r.Post("/api/users/signin", authHandler.SignIn)
 	r.Post("/api/users/signup", authHandler.SignUp)
 
-	http.ListenAndServe(":3000", r)
+	http.ListenAndServe(":9000", r)
 
 }
