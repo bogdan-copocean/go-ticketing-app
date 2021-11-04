@@ -9,9 +9,9 @@ COPY go.sum .
 
 RUN go mod download 
 
-COPY ./services/auth services/auth/
+COPY ./services/tickets services/tickets/
 COPY pkg pkg
 
-RUN go build -o auth services/auth/main.go
+RUN go build -o tickets services/tickets/main.go
 
-CMD [ "./auth" ]
+CMD [ "./tickets" ]
