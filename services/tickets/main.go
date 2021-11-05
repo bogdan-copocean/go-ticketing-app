@@ -3,6 +3,10 @@ package main
 import (
 	"net/http"
 
+	"github.com/bogdan-user/go-ticketing-app/services/tickets/app"
+	"github.com/bogdan-user/go-ticketing-app/services/tickets/interfaces"
+	"github.com/bogdan-user/go-ticketing-app/services/tickets/middlewares"
+	"github.com/bogdan-user/go-ticketing-app/services/tickets/repository"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -12,9 +16,14 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	// ticketsRepository := repository.ConnectToMongo()
-	// ticketsService := app.NewTicketsService(ticketsRepository)
-	// ticketsHandler := interfaces.NewTicketsHandler(ticketsService)
+	ticketsRepository := repository.ConnectToMongo()
+	ticketsService := app.NewTicketsService(ticketsRepository)
+	ticketsHandler := interfaces.NewTicketsHandler(ticketsService)
+
+	r.Group(func(r chi.Router) {
+		r.Use(middlewares.CurrentUserMiddleware)
+		r.Post("/api/tickets", ticketsHandler.CreateTicket)
+	})
 
 	http.ListenAndServe(":9001", r)
 

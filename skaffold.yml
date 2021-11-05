@@ -17,3 +17,10 @@ build:
       #   manual:
       #     - src: 'services/auth/**/*.go'
       #       dest: .
+    - image: userbogdan/tickets
+      docker:
+        dockerfile: services/tickets/Dockerfile
+      # sync:
+      #   manual:
+      #     - src: 'services/tickets/**/*.go'
+      #       dest: .

@@ -15,8 +15,8 @@ func ConnectToMongo() TicketsRepository {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, connErr := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://tickets-mongo-srv:27017"))
-	// client, connErr := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	// client, connErr := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://tickets-mongo-srv:27017"))
+	client, connErr := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:30091"))
 	if connErr != nil {
 		fmt.Printf("[connErr]: %v\n", connErr.Error())
 		panic(connErr)
