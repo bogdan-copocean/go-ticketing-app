@@ -15,6 +15,7 @@ import (
 type TicketsRepository interface {
 	CreateTicket(*domain.Ticket) (*domain.Ticket, *errors.CustomErr)
 	GetTicketById(string) (*domain.Ticket, *errors.CustomErr)
+	GetAllTickets() ([]*domain.Ticket, *errors.CustomErr)
 }
 
 type ticketsRepository struct {
@@ -58,8 +59,29 @@ func (ar *ticketsRepository) GetTicketById(id string) (*domain.Ticket, *errors.C
 			return nil, errors.NewNotFoundErr(fmt.Sprintf("document with id %s not found", id))
 
 		}
-		return nil, errors.NewInternalServerErr(err.Error())
+		return nil, errors.NewInternalServerErr(findErr.Error())
 	}
 
 	return &ticket, nil
+}
+
+func (ar *ticketsRepository) GetAllTickets() ([]*domain.Ticket, *errors.CustomErr) {
+	ctx := context.Background()
+	tickets := []*domain.Ticket{}
+
+	cursor, findErr := ar.collection.Find(ctx, bson.M{})
+	if findErr != nil {
+		if findErr.Error() == "mongo: no documents in result" {
+			return nil, errors.NewNotFoundErr("documents not found")
+
+		}
+		return nil, errors.NewInternalServerErr(findErr.Error())
+	}
+	defer cursor.Close(ctx)
+
+	if cursorErr := cursor.All(context.Background(), &tickets); cursorErr != nil {
+		return nil, errors.NewInternalServerErr(cursorErr.Error())
+	}
+
+	return tickets, nil
 }

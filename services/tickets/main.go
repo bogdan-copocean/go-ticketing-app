@@ -25,6 +25,7 @@ func main() {
 		r.Post("/api/tickets", ticketsHandler.CreateTicket)
 	})
 
+	r.Get("/api/tickets", ticketsHandler.GetAllTickets)
 	r.Get("/api/tickets/{ticketId}", ticketsHandler.GetTicketById)
 	http.ListenAndServe(":9001", r)
 

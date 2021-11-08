@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -16,6 +15,7 @@ import (
 type TicketsHandler interface {
 	CreateTicket(http.ResponseWriter, *http.Request)
 	GetTicketById(http.ResponseWriter, *http.Request)
+	GetAllTickets(w http.ResponseWriter, r *http.Request)
 }
 
 type ticketsHandler struct {
@@ -42,10 +42,9 @@ func (th *ticketsHandler) CreateTicket(w http.ResponseWriter, r *http.Request) {
 
 	reqCtx := r.Context()
 	claims := reqCtx.Value(middlewares.CurrentUser)
-	fmt.Println(claims)
-	// userId := claims["user_id"]
 
-	// ticket.UserId = userId
+	claimsMap := claims.(map[string]interface{})
+	ticket.UserId = claimsMap["id"].(string)
 
 	createdTicket, createErr := th.authService.CreateTicket(ticket)
 	if createErr != nil {
@@ -66,6 +65,23 @@ func (th *ticketsHandler) GetTicketById(w http.ResponseWriter, r *http.Request) 
 	ticketId := chi.URLParam(r, "ticketId")
 
 	foundTicket, getErr := th.authService.GetTicketById(ticketId)
+	if getErr != nil {
+		w.WriteHeader(getErr.StatusCode)
+		res, _ := json.Marshal(getErr)
+		w.Write(res)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res, _ := json.Marshal(foundTicket)
+	w.Write(res)
+
+}
+
+func (th *ticketsHandler) GetAllTickets(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	foundTicket, getErr := th.authService.GetAllTickets()
 	if getErr != nil {
 		w.WriteHeader(getErr.StatusCode)
 		res, _ := json.Marshal(getErr)

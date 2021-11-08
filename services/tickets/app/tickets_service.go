@@ -9,6 +9,7 @@ import (
 type TicketsService interface {
 	CreateTicket(*domain.Ticket) (*domain.Ticket, *errors.CustomErr)
 	GetTicketById(string) (*domain.Ticket, *errors.CustomErr)
+	GetAllTickets() ([]*domain.Ticket, *errors.CustomErr)
 }
 
 type ticketsService struct {
@@ -43,5 +44,18 @@ func (ts *ticketsService) GetTicketById(id string) (*domain.Ticket, *errors.Cust
 	ticket.UserId = ""
 
 	return ticket, nil
+}
 
+func (ts *ticketsService) GetAllTickets() ([]*domain.Ticket, *errors.CustomErr) {
+
+	tickets, getErr := ts.ticketsRepository.GetAllTickets()
+	if getErr != nil {
+		return nil, getErr
+	}
+
+	for _, ticket := range tickets {
+		ticket.Id = ""
+	}
+
+	return tickets, nil
 }
