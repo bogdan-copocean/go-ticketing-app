@@ -3,10 +3,10 @@ package domain
 import "github.com/bogdan-user/go-ticketing-app/pkg/errors"
 
 type Ticket struct {
-	Id     string  `json:"id,omitempty"`
+	Id     string  `json:"id,omitempty" bson:"_id"`
 	Title  string  `json:"title"`
 	Price  float64 `json:"price,omitempty"`
-	UserId string  `json:"user_id,omitempty"`
+	UserId string  `json:"user_id,omitempty" bson:"user_id"`
 }
 
 func (ticket *Ticket) ValidateTicket() *errors.CustomErr {

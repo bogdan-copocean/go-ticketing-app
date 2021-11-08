@@ -3,7 +3,6 @@ package middlewares
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/bogdan-user/go-ticketing-app/pkg/crypto"
@@ -31,7 +30,7 @@ func CurrentUserMiddleware(next http.Handler) http.Handler {
 
 		// verify payload and extract claims
 		claims, tokenErr := crypto.VerifyJWTToken(cookie.Value)
-		fmt.Println(claims)
+
 		if tokenErr != nil {
 			w.WriteHeader(tokenErr.StatusCode)
 			res, _ := json.Marshal(tokenErr)

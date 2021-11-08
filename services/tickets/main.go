@@ -23,6 +23,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares.CurrentUserMiddleware)
 		r.Post("/api/tickets", ticketsHandler.CreateTicket)
+		r.Put("/api/tickets/{ticketId}", ticketsHandler.UpdateTicket)
 	})
 
 	r.Get("/api/tickets", ticketsHandler.GetAllTickets)

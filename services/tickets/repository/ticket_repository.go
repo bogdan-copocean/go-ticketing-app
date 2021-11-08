@@ -3,19 +3,20 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/bogdan-user/go-ticketing-app/pkg/errors"
 	"github.com/bogdan-user/go-ticketing-app/services/tickets/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type TicketsRepository interface {
 	CreateTicket(*domain.Ticket) (*domain.Ticket, *errors.CustomErr)
 	GetTicketById(string) (*domain.Ticket, *errors.CustomErr)
 	GetAllTickets() ([]*domain.Ticket, *errors.CustomErr)
+	UpdateTicket(*domain.Ticket, string) (*domain.Ticket, *errors.CustomErr)
 }
 
 type ticketsRepository struct {
@@ -50,7 +51,7 @@ func (ar *ticketsRepository) GetTicketById(id string) (*domain.Ticket, *errors.C
 
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Println("Invalid id")
+		return nil, errors.NewBadRequestErr(err.Error())
 	}
 
 	findErr := ar.collection.FindOne(ctx, bson.M{"_id": objectId}).Decode(&ticket)
@@ -84,4 +85,23 @@ func (ar *ticketsRepository) GetAllTickets() ([]*domain.Ticket, *errors.CustomEr
 	}
 
 	return tickets, nil
+}
+
+func (ar *ticketsRepository) UpdateTicket(ticket *domain.Ticket, foundId string) (*domain.Ticket, *errors.CustomErr) {
+	ctx := context.Background()
+	updatedTicket := domain.Ticket{}
+	opts := options.FindOneAndUpdate()
+	opts.SetReturnDocument(options.After)
+
+	objectId, err := primitive.ObjectIDFromHex(foundId)
+	if err != nil {
+		return nil, errors.NewInternalServerErr(err.Error())
+	}
+
+	updateErr := ar.collection.FindOneAndUpdate(ctx, bson.M{"_id": objectId}, bson.M{"$set": bson.M{"title": ticket.Title, "price": ticket.Price}}, opts).Decode(&updatedTicket)
+	if updateErr != nil {
+		return nil, errors.NewInternalServerErr(updateErr.Error())
+	}
+
+	return &updatedTicket, nil
 }

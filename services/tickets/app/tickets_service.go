@@ -10,6 +10,7 @@ type TicketsService interface {
 	CreateTicket(*domain.Ticket) (*domain.Ticket, *errors.CustomErr)
 	GetTicketById(string) (*domain.Ticket, *errors.CustomErr)
 	GetAllTickets() ([]*domain.Ticket, *errors.CustomErr)
+	UpdateTicket(string, string, *domain.Ticket) (*domain.Ticket, *errors.CustomErr)
 }
 
 type ticketsService struct {
@@ -53,9 +54,27 @@ func (ts *ticketsService) GetAllTickets() ([]*domain.Ticket, *errors.CustomErr) 
 		return nil, getErr
 	}
 
-	for _, ticket := range tickets {
-		ticket.Id = ""
+	return tickets, nil
+}
+
+func (ts *ticketsService) UpdateTicket(userRequestId, ticketId string, ticket *domain.Ticket) (*domain.Ticket, *errors.CustomErr) {
+	if errValidate := ticket.ValidateTicket(); errValidate != nil {
+		return nil, errValidate
 	}
 
-	return tickets, nil
+	foundTicket, errFound := ts.ticketsRepository.GetTicketById(ticketId)
+	if errFound != nil {
+		return nil, errFound
+	}
+
+	if userRequestId != foundTicket.UserId {
+		return nil, errors.NewUnauthorizedErr("you're not the owner of this ticket")
+	}
+
+	updatedTicket, updatedErr := ts.ticketsRepository.UpdateTicket(ticket, foundTicket.Id)
+	if updatedErr != nil {
+		return nil, updatedErr
+	}
+
+	return updatedTicket, nil
 }
