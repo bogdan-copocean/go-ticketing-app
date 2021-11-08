@@ -66,5 +66,7 @@ func (ar *authRepository) GetUserByEmail(user *domain.User) (*domain.User, *erro
 		return nil, errors.NewBadRequestErr("invalid credentials")
 	}
 
+	user.Id = foundUser.Id
+
 	return user, nil
 }

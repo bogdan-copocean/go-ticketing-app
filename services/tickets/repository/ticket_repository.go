@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"log"
 
 	"github.com/bogdan-user/go-ticketing-app/pkg/errors"
 	"github.com/bogdan-user/go-ticketing-app/services/tickets/domain"
@@ -12,6 +14,7 @@ import (
 
 type TicketsRepository interface {
 	CreateTicket(*domain.Ticket) (*domain.Ticket, *errors.CustomErr)
+	GetTicketById(string) (*domain.Ticket, *errors.CustomErr)
 }
 
 type ticketsRepository struct {
@@ -38,4 +41,25 @@ func (ar *ticketsRepository) CreateTicket(ticket *domain.Ticket) (*domain.Ticket
 	ticket.Id = oid.Hex()
 
 	return ticket, nil
+}
+
+func (ar *ticketsRepository) GetTicketById(id string) (*domain.Ticket, *errors.CustomErr) {
+	ctx := context.Background()
+	ticket := domain.Ticket{}
+
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Println("Invalid id")
+	}
+
+	findErr := ar.collection.FindOne(ctx, bson.M{"_id": objectId}).Decode(&ticket)
+	if findErr != nil {
+		if findErr.Error() == "mongo: no documents in result" {
+			return nil, errors.NewNotFoundErr(fmt.Sprintf("document with id %s not found", id))
+
+		}
+		return nil, errors.NewInternalServerErr(err.Error())
+	}
+
+	return &ticket, nil
 }

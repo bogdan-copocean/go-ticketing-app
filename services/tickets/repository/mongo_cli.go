@@ -27,7 +27,7 @@ func ConnectToMongo() TicketsRepository {
 		panic(pingErr)
 	}
 
-	collection := client.Database("auth").Collection("auth")
+	collection := client.Database("tickets").Collection("tickets")
 
 	return NewTicketsRepository(client, collection)
 

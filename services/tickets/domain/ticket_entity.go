@@ -6,7 +6,7 @@ type Ticket struct {
 	Id     string  `json:"id,omitempty"`
 	Title  string  `json:"title"`
 	Price  float64 `json:"price,omitempty"`
-	UserId string  `json:"user_id"`
+	UserId string  `json:"user_id,omitempty"`
 }
 
 func (ticket *Ticket) ValidateTicket() *errors.CustomErr {

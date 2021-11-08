@@ -69,7 +69,7 @@ func (ah *authHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := http.Cookie{Name: "jwt", Value: accessToken}
+	cookie := http.Cookie{Name: "jwt", Value: accessToken, Path: "/"}
 	http.SetCookie(w, &cookie)
 
 	w.WriteHeader(http.StatusOK)
@@ -118,7 +118,7 @@ func (ah *authHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := http.Cookie{Name: "jwt", Value: accessToken}
+	cookie := http.Cookie{Name: "jwt", Value: accessToken, Path: "/"}
 	http.SetCookie(w, &cookie)
 
 	w.WriteHeader(http.StatusCreated)

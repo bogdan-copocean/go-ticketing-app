@@ -2,16 +2,20 @@ package interfaces
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/bogdan-user/go-ticketing-app/pkg/errors"
 	"github.com/bogdan-user/go-ticketing-app/services/tickets/app"
 	"github.com/bogdan-user/go-ticketing-app/services/tickets/domain"
+	"github.com/bogdan-user/go-ticketing-app/services/tickets/middlewares"
+	"github.com/go-chi/chi"
 )
 
 type TicketsHandler interface {
 	CreateTicket(http.ResponseWriter, *http.Request)
+	GetTicketById(http.ResponseWriter, *http.Request)
 }
 
 type ticketsHandler struct {
@@ -36,6 +40,13 @@ func (th *ticketsHandler) CreateTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	reqCtx := r.Context()
+	claims := reqCtx.Value(middlewares.CurrentUser)
+	fmt.Println(claims)
+	// userId := claims["user_id"]
+
+	// ticket.UserId = userId
+
 	createdTicket, createErr := th.authService.CreateTicket(ticket)
 	if createErr != nil {
 		w.WriteHeader(createErr.StatusCode)
@@ -46,6 +57,24 @@ func (th *ticketsHandler) CreateTicket(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	res, _ := json.Marshal(createdTicket)
+	w.Write(res)
+
+}
+
+func (th *ticketsHandler) GetTicketById(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	ticketId := chi.URLParam(r, "ticketId")
+
+	foundTicket, getErr := th.authService.GetTicketById(ticketId)
+	if getErr != nil {
+		w.WriteHeader(getErr.StatusCode)
+		res, _ := json.Marshal(getErr)
+		w.Write(res)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	res, _ := json.Marshal(foundTicket)
 	w.Write(res)
 
 }
